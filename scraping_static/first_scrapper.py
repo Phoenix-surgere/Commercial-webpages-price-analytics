@@ -13,10 +13,12 @@ def multipleMe(f1: float, f2:float ) -> float:
         raise TypeError("f2 must be a number")
     return f1*f2
 
-def scrape_example_website(url: str ) -> BeautifulSoup:
+#https://stackoverflow.com/questions/38727520/how-do-i-add-default-parameters-to-functions-when-using-type-hinting
+def scrape_example_website(url: str, parser: str = "html.parser") -> BeautifulSoup:
+    '''Scrapes an example, static website; Used for prototyping tests '''
     responce = requests.get(url)
     if responce.status_code == 200:
-        soup = BeautifulSoup(responce.content, "html.parser")
+        soup = BeautifulSoup(responce.content, parser)
         return soup
     return {}
     
