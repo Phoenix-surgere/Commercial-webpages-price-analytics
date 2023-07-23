@@ -1,0 +1,8 @@
+todo:
+
+1) Figure out the thing with the better flexibility on storing example html responces for testing
+
+2) communication with different conda environment with socket (https://stackoverflow.com/questions/73846871/how-to-exchange-data-between-two-different-python-processes-of-different-conda-e)
+
+3) figure out how to timeout a long-running internal process to avoid bullshit scenarios
+when scraping

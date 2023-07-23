@@ -6,6 +6,7 @@ import numpy as np
 from unittest.mock import patch, Mock
 import json
 from requests import Response
+import pandas as pd
 #Note: run with < python -m unittest > NOT <python3 .. >
 #conda env export -n scraping  > environment.yml: RUN THIS TO GET .YML file of ALL
 #  libraries installed with pip AND conda
@@ -18,7 +19,8 @@ from requests import Response
     conda install nose
     conda install coverage
     conda install -c conda-forge scrapy
-
+    -is there a pip install here for the color tool-?
+    conda install -c conda-forge sqlalchemy
 """
 
 mock_data = {}
@@ -28,12 +30,18 @@ class TestScrape(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """ Load basic responses needed by tests """
+        """ Load basic responses needed by tests;
+           TODO:Think about best way of generalizing for other websites too    
+        """
         global mock_data
-        with open('fixtures/test_website.json') as json_data:
-            mock_data = json.load(json_data)
+ #       with open('fixtures/test_website.json') as json_data:
+  #          mock_data = json.load(json_data)
+        mock_data = pd.read_csv(r'fixtures\responces_fixed.csv', names=['type', 'responces'], 
+                                header=0)
 
-    #Not actually a terribly good test because it depends on external factos
+
+
+    #Not actually a good test because it depends on external factos
     #This should ideally be converted to use Mocks for consistencty
     def test_example_scrape(self):
         """Tests  if the basic scrape is Ok - good path"""
@@ -53,20 +61,49 @@ class TestScrape(TestCase):
     @patch('scraping_static.first_scrapper.requests.get')
     def test_goodCall_example_scrape(self, good_mock):
         """Using mock to test a good call """
+        mock_responce = mock_data.responces.iloc[0]
+        mock_responce = bytes(mock_responce[2:len(mock_responce)-1], encoding='utf-8')
+        print(f"THIS IS {mock_responce}, of type {type(mock_responce)}")
         good_mock.return_value = Mock(
             spec = Response,
             status_code=200,
-            content = b'<html>\n<head>\n<title>A Useful Page</title>\n</head>\n<body>\n<h1>An Interesting Title</h1>\n<div>\nLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n</div>\n</body>\n</html>\n' )
-       
+            #hard-coding the expected answer, that I have taken from 
+            #actually scrapuing the website. Best practice would probably
+            #be to include all those hard-copied test subjects in their own
+            #file and then link them in the test code to avoid clutter etc
+            #content = b'<html>\n<head>\n<title>A Useful Page</title>\n</head>\n<body>\n<h1>An Interesting Title</h1>\n<div>\nLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n</div>\n</body>\n</html>\n' )
+            content = mock_responce)
         url = "whatever.html"
         mock_soup = scrape_example_website(url)
         self.assertIsInstance(mock_soup, BeautifulSoup)
-        
+
         title = mock_soup.find('title').text 
         h1 = mock_soup.find('h1').text
 
         self.assertEqual(title ,'A Useful Page' )
         self.assertEqual( h1 , 'An Interesting Title')
+
+
+    @patch('scraping_static.first_scrapper.requests.get')
+    def test_badCall_example_scrape(self, bad_mock):
+        """Using mock to test a good call for a 'bad' webpage version """
+        mock_responce = mock_data.responces.iloc[1]
+        mock_responce = bytes(mock_responce[2:len(mock_responce)-1], encoding='utf-8')
+
+        bad_mock.return_value = Mock(
+            spec = Response,
+            status_code=200,
+            content = mock_responce)
+
+        url = "whatever.html"
+        mock_soup = scrape_example_website(url)
+        self.assertIsInstance(mock_soup, BeautifulSoup)
+
+        title = mock_soup.find('title').text 
+        h1 = mock_soup.find('h1').text
+        
+        self.assertEqual(title ,'A NOT Useful Page' )
+        self.assertEqual( h1 , 'An NOT Interesting Title')
 
 
 

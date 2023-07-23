@@ -41,4 +41,13 @@ def scrape_example_website(url: str ) -> BeautifulSoup:
 
 #scrape_example_website("https://pythonscraping.com/pages/page1.html")
 
+html = scrape_example_website("http://www.pythonscraping.com/pages/warandpeace.html")
+print(html)
 #add(5,7)
+
+nameList=html.findAll('span', {'class': 'green'})
+nameListGB = html.find_all('span', {'class': {'green', 'red'}})
+for name in nameList:
+    print(name.get_text())
+
+html = scrape_example_website("https://www.pythonscraping.com/pages/page3.html")
